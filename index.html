@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Join Pokeno Mania</title>
+<style>
+  body{font-family:-apple-system,system-ui,sans-serif;text-align:center;padding:48px 16px;color:#222}
+  a.btn{display:inline-block;margin-top:16px;padding:12px 20px;background:#1565c0;color:#fff;
+        border-radius:8px;text-decoration:none;font-weight:600}
+</style>
+</head>
+<body>
+<p id="msg">Opening Pokeno Mania…</p>
+<a id="store" class="btn" style="display:none"
+   href="https://play.google.com/store/apps/details?id=com.pokenomania.pokeno">Get the app</a>
+<script>
+  // Redirect an https invite link to the app via its custom scheme.
+  // Android: use an intent:// URI so Chrome launches the app by package (most reliable).
+  // iOS / other: use the pokeno:// custom scheme directly.
+  var q = location.search; // "?roomId=12&pw=123"
+  var pkg = "com.pokenomania.pokeno";
+  var isAndroid = /android/i.test(navigator.userAgent);
+
+  if (isAndroid) {
+    var fallback = encodeURIComponent(
+      "https://play.google.com/store/apps/details?id=" + pkg);
+    location.replace(
+      "intent://join" + q +
+      "#Intent;scheme=pokeno;package=" + pkg +
+      ";S.browser_fallback_url=" + fallback + ";end");
+  } else {
+    location.replace("pokeno://join" + q);
+  }
+
+  // If the app didn't take over, surface a manual fallback.
+  setTimeout(function () {
+    document.getElementById("msg").textContent =
+      "If nothing happened, the app may not be installed.";
+    document.getElementById("store").style.display = "inline-block";
+  }, 2000);
+</script>
+</body>
+</html>
