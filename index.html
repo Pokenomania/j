@@ -13,13 +13,13 @@
 <body>
 <p id="msg">Opening Pokeno Mania…</p>
 <a id="store" class="btn" style="display:none"
-   href="https://play.google.com/store/apps/details?id=com.pokenomania.pokeno">Get the app</a>
+   href="https://play.google.com/store/apps/details?id=com.pokenomania.game">Get the app</a>
 <script>
   // Redirect an https invite link to the app via its custom scheme.
   // Android: use an intent:// URI so Chrome launches the app by package (most reliable).
   // iOS / other: use the pokeno:// custom scheme directly.
   var q = location.search; // "?roomId=12&pw=123"
-  var pkg = "com.pokenomania.pokeno";
+  var pkg = "com.pokenomania.game";
   var isAndroid = /android/i.test(navigator.userAgent);
 
   if (isAndroid) {
