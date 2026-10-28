@@ -5,42 +5,121 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Join Pokeno Mania</title>
 <style>
+  [hidden]{display:none !important}
   body{font-family:-apple-system,system-ui,sans-serif;text-align:center;padding:48px 16px;color:#222}
-  a.btn{display:inline-block;margin-top:16px;padding:12px 20px;background:#1565c0;color:#fff;
+  h1{font-size:1.4em}
+  a.btn{display:inline-block;margin:16px 6px 0;padding:12px 20px;background:#1565c0;color:#fff;
         border-radius:8px;text-decoration:none;font-weight:600}
+  .value{font-weight:600;font-size:1.2em;user-select:all;-webkit-user-select:all;white-space:pre-wrap}
+  button.copy{margin-left:8px;padding:4px 12px;font:inherit}
+  #help{max-width:32em;margin:24px auto 0;color:#555}
 </style>
 </head>
 <body>
-<p id="msg">Opening Pokeno Mania…</p>
-<a id="store" class="btn" style="display:none"
-   href="https://play.google.com/store/apps/details?id=com.pokenomania.game">Get the app</a>
+<p id="msg" hidden>Opening Pokeno Mania…</p>
+<div id="invite" hidden>
+  <h1>You're invited to a Pokeno Mania room</h1>
+  <p>Room number: <span id="room" class="value"></span><button type="button" class="copy" data-copy="room">Copy</button></p>
+  <p id="pwLine">Password: <span id="pw" class="value"></span><button type="button" class="copy" data-copy="pw">Copy</button></p>
+  <a id="open" class="btn">Open in Pokeno Mania</a>
+</div>
+<div id="stores" hidden>
+  <a id="play" class="btn">Get it on Google Play</a>
+  <a id="appstore" class="btn" hidden>Download on the App Store</a>
+</div>
+<p id="help" hidden>Just installed the app? Tap your invite link again, or Open in Pokeno Mania above. On Android the
+app may already show this room. You can also open the app, tap Join Room By Number and enter the room number and
+password.</p>
 <script>
-  // Redirect an https invite link to the app via its custom scheme.
-  // Android: use an intent:// URI so Chrome launches the app by package (most reliable).
-  // iOS / other: use the pokeno:// custom scheme directly.
-  var q = location.search; // "?roomId=12&pw=123"
-  var pkg = "com.pokenomania.game";
+(function () {
+  var PKG = "com.pokenomania.game";
+  // Empty until an App Store listing exists; the App Store button is shown only when this is set.
+  // The Google Play button is shown on every platform.
+  var IOS_STORE_URL = "";
+
+  var enc = encodeURIComponent;
+  var q = new URLSearchParams(location.search);
+  var room = q.get("roomId") || "";
+  var pw = q.get("pw") || "";
+  var rid = q.get("rid") || "";
   var isAndroid = /android/i.test(navigator.userAgent);
 
-  if (isAndroid) {
-    var fallback = encodeURIComponent(
-      "https://play.google.com/store/apps/details?id=" + pkg);
-    location.replace(
-      "intent://join" + q +
-      "#Intent;scheme=pokeno;package=" + pkg +
-      ";S.browser_fallback_url=" + fallback + ";end");
-  } else {
-    location.replace("pokeno://join" + q);
+  function el(id) { return document.getElementById(id); }
+
+  var playBase = "https://play.google.com/store/apps/details?id=" + PKG;
+  if (IOS_STORE_URL) {
+    el("appstore").href = IOS_STORE_URL;
+    el("appstore").hidden = false;
   }
 
-  // If the app didn't take over, surface a manual fallback.
-  setTimeout(function () {
-    document.getElementById("msg").textContent =
-      "If nothing happened, the app may not be installed.";
-    document.getElementById("store").style.display = "inline-block";
-  }, 2000);
+  // No invite: offer the stores and attempt nothing.
+  if (!room) {
+    el("play").href = playBase;
+    el("stores").hidden = false;
+    return;
+  }
+
+  // The values are untrusted: rebuilt with encodeURIComponent, shown with textContent only.
+  var appQuery = "roomId=" + enc(room) + "&pw=" + enc(pw) + (rid ? "&rid=" + enc(rid) : "");
+  var play = playBase + "&referrer=" + enc(appQuery);
+  var appUrl;
+  if (isAndroid) {
+    // Where Chrome goes when the app is not installed: back here with noapp=1, showing the room.
+    var fallback = location.origin + location.pathname + "?" + appQuery + "&noapp=1";
+    appUrl = "intent://join?" + appQuery + "#Intent;scheme=pokeno;package=" + PKG +
+      ";S.browser_fallback_url=" + enc(fallback) + ";end";
+  } else {
+    appUrl = "pokeno://join?" + appQuery;
+  }
+
+  el("play").href = play;
+  el("open").href = appUrl;
+  el("room").textContent = room;
+  el("pw").textContent = pw;
+  el("pwLine").hidden = !pw;
+
+  var copies = document.querySelectorAll("button.copy");
+  for (var i = 0; i < copies.length; i++) setUpCopy(copies[i]);
+
+  function setUpCopy(button) {
+    if (!navigator.clipboard || !navigator.clipboard.writeText) {
+      button.hidden = true;
+      return;
+    }
+    var field = button.getAttribute("data-copy");
+    var timer;
+    function showFor2s(label) {
+      button.textContent = label;
+      clearTimeout(timer);
+      timer = setTimeout(function () { button.textContent = "Copy"; }, 2000);
+    }
+    button.addEventListener("click", function () {
+      navigator.clipboard.writeText(el(field).textContent).then(function () {
+        showFor2s("Copied");
+      }, function (err) {
+        // The value stays selectable, so the player can still copy it by hand.
+        showFor2s("Copy failed");
+        console.error("Invite page: copy failed (operation=copy field=" + field + " roomId=" + room +
+          " rid=" + rid + ")", err);
+      });
+    });
+  }
+
+  function showPanel() {
+    el("msg").hidden = true;
+    el("invite").hidden = false;
+    el("stores").hidden = false;
+    el("help").hidden = false;
+  }
+
+  if (q.get("noapp") === "1") {
+    showPanel();
+    return;
+  }
+  el("msg").hidden = false;
+  location.replace(appUrl);
+  setTimeout(showPanel, 2000);
+})();
 </script>
 </body>
 </html>
-
-<!-- v2 -->
