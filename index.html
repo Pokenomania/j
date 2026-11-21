@@ -33,9 +33,9 @@ password.</p>
 <script>
 (function () {
   var PKG = "com.pokenomania.game";
-  // Empty until an App Store listing exists; the App Store button is shown only when this is set.
-  // The Google Play button is shown on every platform.
-  var IOS_STORE_URL = "";
+  // The App Store listing. When set, iPhone and iPad visitors see only the App Store button; everyone else,
+  // and everyone while it is empty, sees only the Google Play button.
+  var IOS_STORE_URL = "https://apps.apple.com/app/id6804006838";
 
   var enc = encodeURIComponent;
   var q = new URLSearchParams(location.search);
@@ -43,13 +43,17 @@ password.</p>
   var pw = q.get("pw") || "";
   var rid = q.get("rid") || "";
   var isAndroid = /android/i.test(navigator.userAgent);
+  // iPadOS Safari sends a Mac user agent; a Mac has no touch points, an iPad has several.
+  var isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+    (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
 
   function el(id) { return document.getElementById(id); }
 
   var playBase = "https://play.google.com/store/apps/details?id=" + PKG;
-  if (IOS_STORE_URL) {
+  if (IOS_STORE_URL && isIOS) {
     el("appstore").href = IOS_STORE_URL;
     el("appstore").hidden = false;
+    el("play").hidden = true;
   }
 
   // No invite: offer the stores and attempt nothing.
