@@ -12,7 +12,7 @@ https://pokenomania.github.io/j/?roomId=<room number>&pw=<password>&rid=<room id
 
 The game's "Copy invite link" button builds these links. The parameters:
 
-- `roomId`: the room number. Without it the page opens nothing and shows only the store buttons.
+- `roomId`: the room number. Without it the page opens nothing and shows only the store button for that platform.
 - `pw`: the room password. When it is empty the panel has no Password line.
 - `rid`: the server's room id, passed through to the app, which uses it to tell a closed room from a newer one with
   the same number. Left out of the app URL when absent. App versions older than the one that reads `rid` and the Play
