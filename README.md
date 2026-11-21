@@ -38,11 +38,12 @@ The page reads `roomId`, `pw` and `rid` with `URLSearchParams` and rebuilds ever
      (`localhost`, `127.0.0.1` and `[::1]` are secure contexts and keep it), the Copy buttons are hidden; on desktop,
      one mouse click still selects the whole value;
    - **Open in Pokeno Mania**: the same app URL as above;
-   - **Get it on Google Play**, on every platform, iPhone included:
+   - **Get it on Google Play**, on every platform except iPhone and iPad once `IOS_STORE_URL` is set:
      `https://play.google.com/store/apps/details?id=com.pokenomania.game&referrer=…`. The `referrer` carries the same
      three values (`roomId=…&pw=…&rid=…`, encoded once more), which the app reads once after a Play install (app
      versions older than the one that reads `rid` and the referrer never read it);
-   - **Download on the App Store**, only when `IOS_STORE_URL` is set;
+   - **Download on the App Store**, on iPhone and iPad only, and only when `IOS_STORE_URL` is set; there it replaces
+     the Google Play button;
    - the help line: "Just installed the app? Tap your invite link again, or Open in Pokeno Mania above. On Android
      the app may already show this room. You can also open the app, tap Join Room By Number and enter the room
      number and password."
@@ -51,9 +52,14 @@ Values from the query are only ever shown with `textContent`, never as HTML.
 
 ## The one setting
 
-`IOS_STORE_URL`, at the top of the script, is empty until an App Store listing exists. Setting it shows the
-"Download on the App Store" button, linking to that URL, beside the Google Play button (also on the page without an
-invite).
+`IOS_STORE_URL`, at the top of the script, is the App Store listing, `https://apps.apple.com/app/id<Apple ID>`.
+
+- While it is empty, every platform sees only "Get it on Google Play".
+- When it is set, iPhone and iPad see only "Download on the App Store", linking to that URL, and every other platform,
+  desktop included, sees only "Get it on Google Play". The page without an invite follows the same rule.
+
+Safari on iPad sends a Mac user agent by default, so the page counts a `Macintosh` user agent with more than one
+touch point (`navigator.maxTouchPoints`) as an iPad; a Mac reports none.
 
 ## Checking a change
 
@@ -67,6 +73,10 @@ iPhone device preset in the browser's developer tools. Expected:
 - "Opening Pokeno Mania…", then after 2 s the panel with room number `123456` and password `ab&c%d`; Copy pastes
   exactly those values. Desktop Chrome logs "Failed to launch 'pokeno://join?…'" because no app handles the scheme
   there: that line is the attempt.
+- With `IOS_STORE_URL` set, the iPhone preset shows only "Download on the App Store"
+  (`document.getElementById("appstore").href` is the URL, and `document.getElementById("play").hidden` is `true`).
+  The desktop and the Android preset show only "Get it on Google Play". With `IOS_STORE_URL` empty, every preset
+  shows only Google Play.
 - `document.getElementById("play").href` is
   `https://play.google.com/store/apps/details?id=com.pokenomania.game&referrer=roomId%3D123456%26pw%3Dab%2526c%2525d%26rid%3Dr-1`
   on every preset.
@@ -74,12 +84,14 @@ iPhone device preset in the browser's developer tools. Expected:
   `decodeURIComponent(document.getElementById("open").getAttribute("href").match(/S\.browser_fallback_url=([^;]*)/)[1])`
   is `http://localhost:8000/?roomId=123456&pw=ab%26c%25d&rid=r-1&noapp=1`.
 - `?roomId=%3Cb%3Ex%3C%2Fb%3E&pw=1` shows the room number `<b>x</b>` literally; `?roomId=123456&pw=` shows no
-  Password line; the bare page shows only "Get it on Google Play" and opens nothing; the first URL above (the one
-  with `roomId`) with `&noapp=1` added shows the panel at once and opens nothing.
+  Password line; the bare page shows the same store button as the panel on that preset and opens nothing; the first
+  URL above (the one with `roomId`) with `&noapp=1` added shows the panel at once and opens nothing.
 - The first URL with `localhost` replaced by the machine's LAN address over plain HTTP (on a Mac:
   `echo "http://$(ipconfig getifaddr en0):8000/?roomId=123456&pw=ab%26c%25d&rid=r-1"`); not `127.0.0.1` or `[::1]`,
   which are secure contexts like `localhost`. `navigator.clipboard` is undefined there, so there are no Copy buttons;
   on desktop, one mouse click still selects the whole value.
+- An iPad: open the first URL in Safari on an iPad in the iOS Simulator, which sends the Mac user agent and the
+  touch points of a real iPad. Expected: as with the iPhone preset.
 
 ## App Links and Universal Links
 
