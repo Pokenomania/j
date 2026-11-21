@@ -38,12 +38,12 @@ The page reads `roomId`, `pw` and `rid` with `URLSearchParams` and rebuilds ever
      (`localhost`, `127.0.0.1` and `[::1]` are secure contexts and keep it), the Copy buttons are hidden; on desktop,
      one mouse click still selects the whole value;
    - **Open in Pokeno Mania**: the same app URL as above;
-   - **Get it on Google Play**, on every platform except iPhone and iPad once `IOS_STORE_URL` is set:
+   - **Get it on Google Play**, on every platform except iPhone, iPad and iPod touch once `IOS_STORE_URL` is set:
      `https://play.google.com/store/apps/details?id=com.pokenomania.game&referrer=…`. The `referrer` carries the same
      three values (`roomId=…&pw=…&rid=…`, encoded once more), which the app reads once after a Play install (app
      versions older than the one that reads `rid` and the referrer never read it);
-   - **Download on the App Store**, on iPhone and iPad only, and only when `IOS_STORE_URL` is set; there it replaces
-     the Google Play button;
+   - **Download on the App Store**, on iPhone, iPad and iPod touch only, and only when `IOS_STORE_URL` is set; there
+     it replaces the Google Play button;
    - the help line: "Just installed the app? Tap your invite link again, or Open in Pokeno Mania above. On Android
      the app may already show this room. You can also open the app, tap Join Room By Number and enter the room
      number and password."
@@ -55,8 +55,9 @@ Values from the query are only ever shown with `textContent`, never as HTML.
 `IOS_STORE_URL`, at the top of the script, is the App Store listing, `https://apps.apple.com/app/id<Apple ID>`.
 
 - While it is empty, every platform sees only "Get it on Google Play".
-- When it is set, iPhone and iPad see only "Download on the App Store", linking to that URL, and every other platform,
-  desktop included, sees only "Get it on Google Play". The page without an invite follows the same rule.
+- When it is set, iPhone, iPad and iPod touch see only "Download on the App Store", linking to that URL, and every
+  other platform, desktop included, sees only "Get it on Google Play". The page without an invite follows the same
+  rule.
 
 Safari on iPad sends a Mac user agent by default, so the page counts a `Macintosh` user agent with more than one
 touch point (`navigator.maxTouchPoints`) as an iPad; a Mac reports none.
